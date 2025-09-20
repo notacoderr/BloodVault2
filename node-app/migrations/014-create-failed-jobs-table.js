@@ -1,5 +1,5 @@
 /**
- * Mirrors 2019_08_19_000000_create_failed_jobs_table.php.
+ * Mirrors 2019_08_19_000000_create_failed_jobs_table.
  * @param {import('sequelize').QueryInterface} queryInterface
  * @param {typeof import('sequelize').Sequelize} Sequelize
  */

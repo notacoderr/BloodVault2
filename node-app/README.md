@@ -1,54 +1,75 @@
-# BloodVault Node.js Implementation
+# BloodVault Node.js service
 
-This directory contains a Node.js translation of the Laravel models and database
-schema used by the BloodVault application. It replaces the Eloquent models and
-migration files with Sequelize equivalents and exposes a feature-complete
-Express application that demonstrates how the same behaviours can be achieved
-with a JavaScript stack.
+This directory contains the canonical JavaScript implementation of the BloodVault
+platform. It exposes the REST API, Socket.IO gateway and single-page dashboard
+that replace the original Laravel stack.
 
-## What's included
+## Directory overview
 
-- **Sequelize models** for users, blood requests, blood donations, blood bank
-  inventory, and appointments with the same relationships, helper methods and
-  scopes that exist in the Laravel codebase.
-- **Migration scripts** that reproduce the database schema defined by the PHP
-  migrations.
-- **Express server** (`server.js`) that wires the models together with JWT based
-  authentication, Socket.IO real-time updates, Nodemailer powered email
-  notifications, and Agenda based job scheduling.
-- **Static single-page portal** under `public/` that replaces the PHP Blade
-  views with a JavaScript dashboard. It consumes the Node API, surfaces the
-  key workflows (requests, donations, appointments, inventory, profile) and is
-  served directly by the Express app.
-- **Services** for sending transactional emails so that higher level features
-  can stay focused on business logic.
+- `server.js` – entry point that boots Express, configures Socket.IO, registers
+  routes and initialises Agenda jobs.
+- `config/` – database configuration shared by the Sequelize models.
+- `models/` – Sequelize model definitions mirroring the BloodVault domain.
+- `migrations/` – schema migrations that can be executed with `sequelize-cli`.
+- `public/` – static dashboard assets served directly by Express.
+- `services/` – reusable modules for email delivery and notification logic.
 
-To try the Node implementation:
+## Environment variables
 
-1. Install dependencies
+Copy the example file and update the placeholders:
 
-   ```bash
-   cd node-app
-   npm install
-   ```
+```bash
+cp .env.example .env
+```
 
-2. Configure environment variables (database credentials, SMTP settings, JWT
-   secret, etc.). You can copy the `.env.example` from the Laravel project or
-   create a new `.env` file in this directory.
+Key variables include database credentials (`DB_HOST`, `DB_DATABASE`,
+`DB_USERNAME`, `DB_PASSWORD`), JWT secrets (`JWT_SECRET`), optional Agenda
+backing store (`MONGO_URL`) and SMTP settings (`MAIL_*`). `APP_ORIGIN` may be set
+to a comma-separated list of allowed front-end origins if the dashboard is
+hosted separately.
 
-3. Run the development server
+## Installing dependencies
 
-   ```bash
-   npm run dev
-   ```
+```bash
+npm install
+```
 
-   The API listens on port `4000` by default, exposes endpoints for
-   authentication, blood requests, donations, appointments and inventory, and
-   serves the dashboard UI at `/`. Socket.IO broadcasts appear under the
-   `blood-*` and `appointment:*` event channels.
+## Database migrations
 
-4. Execute migrations with your preferred runner. If you install `sequelize-cli`
-   globally you can point it at `node-app/migrations` to rebuild the schema.
+Install `sequelize-cli` if it is not already available and run the migrations:
 
-This setup keeps the original PHP project intact while offering a reference
-implementation of the same domain logic using Node.js.
+```bash
+npm install --save-dev sequelize-cli
+npx sequelize-cli db:migrate \
+  --migrations-path migrations \
+  --url "mysql://user:password@localhost:3306/bloodvault"
+```
+
+The migration files export standard `up` and `down` functions so they can also be
+integrated into custom deployment tooling.
+
+## Running the server
+
+```bash
+npm run dev
+```
+
+The server listens on `http://localhost:4000` by default, serving both the API
+and the dashboard UI. Use `npm start` to launch in production mode.
+
+## Linting
+
+ESLint is configured for the project. Run it via:
+
+```bash
+npm run lint
+```
+
+## Additional notes
+
+- Socket.IO broadcasts inventory changes on the `blood-bank:availability`
+  channel.
+- Agenda jobs send email verification messages and appointment reminders when
+  MongoDB is available.
+- Nodemailer defaults to a stream transport when SMTP credentials are not set,
+  making local development frictionless.

@@ -1,5 +1,5 @@
 /**
- * Mirrors the Laravel migration 2025_08_17_034609_create_users_table.php
+ * Mirrors the Laravel migration 2025_08_17_034609_create_users_table
  * and establishes the users table with the same column definitions.
  * @param {import('sequelize').QueryInterface} queryInterface
  * @param {typeof import('sequelize').Sequelize} Sequelize

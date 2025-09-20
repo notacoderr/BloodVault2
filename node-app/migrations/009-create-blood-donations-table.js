@@ -1,6 +1,6 @@
 /**
- * Mirrors 2025_08_17_034816_create_blood_donations_table.php with the later
- * additions from 2025_08_18_074142_add_missing_fields_to_blood_donations_table.php
+ * Mirrors 2025_08_17_034816_create_blood_donations_table with the later
+ * additions from 2025_08_18_074142_add_missing_fields_to_blood_donations_table
  * captured in a follow-up migration.
  * @param {import('sequelize').QueryInterface} queryInterface
  * @param {typeof import('sequelize').Sequelize} Sequelize

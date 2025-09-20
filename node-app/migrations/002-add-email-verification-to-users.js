@@ -1,6 +1,6 @@
 /**
  * Adds the email verification related columns mirroring
- * 2025_08_17_050232_add_email_verification_to_users_table.php.
+ * 2025_08_17_050232_add_email_verification_to_users_table.
  * @param {import('sequelize').QueryInterface} queryInterface
  * @param {typeof import('sequelize').Sequelize} Sequelize
  */
