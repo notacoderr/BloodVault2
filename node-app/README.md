@@ -16,6 +16,10 @@ with a JavaScript stack.
 - **Express server** (`server.js`) that wires the models together with JWT based
   authentication, Socket.IO real-time updates, Nodemailer powered email
   notifications, and Agenda based job scheduling.
+- **Static single-page portal** under `public/` that replaces the PHP Blade
+  views with a JavaScript dashboard. It consumes the Node API, surfaces the
+  key workflows (requests, donations, appointments, inventory, profile) and is
+  served directly by the Express app.
 - **Services** for sending transactional emails so that higher level features
   can stay focused on business logic.
 
@@ -38,9 +42,10 @@ To try the Node implementation:
    npm run dev
    ```
 
-   The API listens on port `4000` by default and exposes endpoints for
-   authentication, blood requests, donations, and appointments. Socket.IO
-   broadcasts appear under the `blood-*` and `appointment:*` event channels.
+   The API listens on port `4000` by default, exposes endpoints for
+   authentication, blood requests, donations, appointments and inventory, and
+   serves the dashboard UI at `/`. Socket.IO broadcasts appear under the
+   `blood-*` and `appointment:*` event channels.
 
 4. Execute migrations with your preferred runner. If you install `sequelize-cli`
    globally you can point it at `node-app/migrations` to rebuild the schema.

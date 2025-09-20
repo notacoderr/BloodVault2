@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BloodVault Portal</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">🩸</span>
+        <h1>BloodVault Portal</h1>
+      </div>
+      <button id="logout-button" class="button button-outline hidden">Log out</button>
+    </header>
+
+    <main class="main-container">
+      <section id="auth-section" class="auth card">
+        <div class="tabs" role="tablist">
+          <button class="tab-button active" data-tab="login" aria-selected="true">Login</button>
+          <button class="tab-button" data-tab="register" aria-selected="false">Register</button>
+        </div>
+        <div class="tab-content active" id="login-tab" role="tabpanel">
+          <form id="login-form" class="form-grid">
+            <label>
+              Email
+              <input type="email" name="email" required autocomplete="email" />
+            </label>
+            <label>
+              Password
+              <input type="password" name="password" required autocomplete="current-password" />
+            </label>
+            <button type="submit" class="button primary">Sign in</button>
+            <p class="form-hint">Use your BloodVault credentials to continue.</p>
+            <p class="form-error hidden" id="login-error" role="alert"></p>
+          </form>
+        </div>
+        <div class="tab-content" id="register-tab" role="tabpanel" aria-hidden="true">
+          <form id="register-form" class="form-grid">
+            <label>
+              Name
+              <input type="text" name="name" required autocomplete="name" />
+            </label>
+            <label>
+              Email
+              <input type="email" name="email" required autocomplete="email" />
+            </label>
+            <label>
+              Password
+              <input type="password" name="password" required minlength="6" autocomplete="new-password" />
+            </label>
+            <label>
+              Role
+              <select name="usertype" required>
+                <option value="donor">Donor</option>
+                <option value="requester">Requester</option>
+                <option value="admin">Admin</option>
+              </select>
+            </label>
+            <button type="submit" class="button primary">Create account</button>
+            <p class="form-error hidden" id="register-error" role="alert"></p>
+          </form>
+        </div>
+      </section>
+
+      <section id="app-shell" class="app-shell hidden" aria-live="polite">
+        <aside class="sidebar">
+          <div class="user-summary">
+            <p id="user-name" class="user-name">&nbsp;</p>
+            <p id="user-role" class="user-role">&nbsp;</p>
+            <p id="user-email" class="user-email">&nbsp;</p>
+          </div>
+          <nav class="nav-links">
+            <button class="nav-link active" data-section="dashboard">Dashboard</button>
+            <button class="nav-link" data-section="requests">Requests</button>
+            <button class="nav-link" data-section="donations">Donations</button>
+            <button class="nav-link" data-section="appointments">Appointments</button>
+            <button class="nav-link" data-section="inventory">Inventory</button>
+            <button class="nav-link" data-section="profile">Profile</button>
+          </nav>
+        </aside>
+
+        <section class="content">
+          <div id="status-bar" class="status-bar hidden" role="status"></div>
+
+          <section id="dashboard-section" class="content-section active">
+            <h2>Dashboard</h2>
+            <div id="summary-cards" class="summary-cards"></div>
+            <div class="grid two-columns">
+              <div class="card">
+                <div class="section-header">
+                  <h3>Recent Requests</h3>
+                  <button id="dashboard-refresh" class="button button-outline small">Refresh</button>
+                </div>
+                <table class="data-table" id="recent-requests-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Blood type</th>
+                      <th>Units</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="card">
+                <h3>Upcoming Appointments</h3>
+                <table class="data-table" id="upcoming-appointments-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section id="requests-section" class="content-section">
+            <div class="section-header">
+              <h2>Blood requests</h2>
+              <button id="refresh-requests" class="button button-outline small">Refresh</button>
+            </div>
+            <div class="card" id="request-form-card">
+              <h3>Create a new request</h3>
+              <form id="create-request-form" class="form-grid">
+                <label>
+                  Blood type
+                  <input type="text" name="bloodType" maxlength="4" placeholder="A+" required />
+                </label>
+                <label>
+                  Units needed
+                  <input type="number" name="unitsNeeded" min="1" step="1" required />
+                </label>
+                <label>
+                  Urgency
+                  <select name="urgency" required>
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                  </select>
+                </label>
+                <label>
+                  Hospital
+                  <input type="text" name="hospital" placeholder="Community Hospital" />
+                </label>
+                <label>
+                  Contact person
+                  <input type="text" name="contactPerson" />
+                </label>
+                <label>
+                  Contact number
+                  <input type="tel" name="contactNumber" />
+                </label>
+                <label class="full-width">
+                  Reason
+                  <textarea name="reason" rows="2" placeholder="Describe the situation"></textarea>
+                </label>
+                <label>
+                  Request date
+                  <input type="date" name="requestDate" />
+                </label>
+                <button type="submit" class="button primary">Submit request</button>
+                <p class="form-error hidden" id="request-error" role="alert"></p>
+              </form>
+            </div>
+            <div class="card">
+              <h3>Existing requests</h3>
+              <table class="data-table" id="requests-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Blood type</th>
+                    <th>Units</th>
+                    <th>Urgency</th>
+                    <th>Status</th>
+                    <th>Available</th>
+                    <th>Allocated units</th>
+                    <th>Requester</th>
+                    <th class="actions-column">Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="donations-section" class="content-section">
+            <div class="section-header">
+              <h2>Blood donations</h2>
+              <button id="refresh-donations" class="button button-outline small">Refresh</button>
+            </div>
+            <div class="card" id="donation-form-card">
+              <h3>Schedule a donation</h3>
+              <form id="create-donation-form" class="form-grid">
+                <label>
+                  Donor name
+                  <input type="text" name="donorName" required />
+                </label>
+                <label>
+                  Donor email
+                  <input type="email" name="donorEmail" required />
+                </label>
+                <label>
+                  Blood type
+                  <input type="text" name="bloodType" maxlength="4" placeholder="O-" required />
+                </label>
+                <label>
+                  Donation date
+                  <input type="date" name="donationDate" />
+                </label>
+                <label>
+                  Quantity (bags)
+                  <input type="number" name="quantity" min="1" step="1" value="1" />
+                </label>
+                <label>
+                  Screening status
+                  <input type="text" name="screeningStatus" placeholder="Pending" />
+                </label>
+                <label class="full-width">
+                  Notes
+                  <textarea name="notes" rows="2" placeholder="Additional information"></textarea>
+                </label>
+                <button type="submit" class="button primary">Submit donation</button>
+                <p class="form-error hidden" id="donation-error" role="alert"></p>
+              </form>
+            </div>
+            <div class="card">
+              <h3>Donation history</h3>
+              <table class="data-table" id="donations-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Blood type</th>
+                    <th>Quantity</th>
+                    <th>Status</th>
+                    <th>Screening</th>
+                    <th>Donor</th>
+                    <th class="actions-column">Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="appointments-section" class="content-section">
+            <div class="section-header">
+              <h2>Appointments</h2>
+              <button id="refresh-appointments" class="button button-outline small">Refresh</button>
+            </div>
+            <div class="card" id="appointment-form-card">
+              <h3>Book an appointment</h3>
+              <form id="create-appointment-form" class="form-grid">
+                <label>
+                  Appointment type
+                  <input type="text" name="appointmentType" placeholder="Donation" required />
+                </label>
+                <label>
+                  Blood type
+                  <input type="text" name="bloodType" maxlength="4" />
+                </label>
+                <label>
+                  Appointment date
+                  <input type="datetime-local" name="appointmentDate" required />
+                </label>
+                <label>
+                  Time slot
+                  <input type="text" name="timeSlot" placeholder="9:00 AM" />
+                </label>
+                <label class="full-width">
+                  Notes
+                  <textarea name="notes" rows="2" placeholder="Anything we should know?"></textarea>
+                </label>
+                <button type="submit" class="button primary">Create appointment</button>
+                <p class="form-error hidden" id="appointment-error" role="alert"></p>
+              </form>
+            </div>
+            <div class="card">
+              <h3>Scheduled appointments</h3>
+              <table class="data-table" id="appointments-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Notes</th>
+                    <th>Participant</th>
+                    <th class="actions-column">Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="inventory-section" class="content-section">
+            <div class="section-header">
+              <h2>Blood bank inventory</h2>
+              <button id="refresh-inventory" class="button button-outline small">Refresh</button>
+            </div>
+            <div class="card">
+              <table class="data-table" id="inventory-table">
+                <thead>
+                  <tr>
+                    <th>Blood type</th>
+                    <th>Quantity</th>
+                    <th>Status</th>
+                    <th>Expires</th>
+                    <th>Donor</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="profile-section" class="content-section">
+            <div class="section-header">
+              <h2>Profile</h2>
+              <button id="refresh-profile" class="button button-outline small">Refresh</button>
+            </div>
+            <div class="card">
+              <dl id="profile-details" class="profile-details"></dl>
+              <div class="profile-actions">
+                <button id="refresh-eligibility" class="button button-outline small">Check donation eligibility</button>
+                <button id="request-verification" class="button small">Send verification email</button>
+              </div>
+              <div id="eligibility-panel" class="eligibility-panel hidden"></div>
+            </div>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <template id="empty-row-template">
+      <tr><td colspan="9" class="empty">No records available yet.</td></tr>
+    </template>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
