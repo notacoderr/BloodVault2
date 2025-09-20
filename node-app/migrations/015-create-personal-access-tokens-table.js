@@ -1,5 +1,5 @@
 /**
- * Mirrors 2019_12_14_000001_create_personal_access_tokens_table.php.
+ * Mirrors 2019_12_14_000001_create_personal_access_tokens_table.
  * @param {import('sequelize').QueryInterface} queryInterface
  * @param {typeof import('sequelize').Sequelize} Sequelize
  */

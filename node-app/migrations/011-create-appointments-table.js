@@ -1,5 +1,5 @@
 /**
- * Mirrors 2025_08_17_034824_create_appointments_table.php.
+ * Mirrors 2025_08_17_034824_create_appointments_table.
  * @param {import('sequelize').QueryInterface} queryInterface
  * @param {typeof import('sequelize').Sequelize} Sequelize
  */

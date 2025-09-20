@@ -1,354 +1,142 @@
-# LifeVault Project Documentation
-
-## System Architecture
-
-### Technology Stack
-- **Backend**: Laravel 9 (PHP 8.0.2+)
-- **Frontend**: Blade templates with Vite for asset compilation
-- **Database**: MySQL/MariaDB
-- **Authentication**: Laravel Sanctum
-- **Email**: Laravel Mail with SMTP support
-
-### Core Components
-- User Management System
-- Blood Donation Management
-- Blood Request Management
-- Appointment Scheduling
-- Blood Inventory Management
-- Email Notification System
-- Admin Dashboard
-- User Dashboard
-
-## User Management System
-
-### User Types
-- **Regular Users**: Can request blood, donate blood, and schedule appointments
-- **Administrators**: Full system access including user management and system configuration
-
-### User Features
-- User registration and authentication
-- Email verification system
-- Profile management (personal information, contact details, blood type)
-- Password change functionality
-- Account recovery and password reset
-
-### User Profile Fields
-- Name, Date of Birth, Sex
-- Address, City, Province
-- Contact number
-- Blood type
-- Last donation date
-- Schedule preferences
-
-## Blood Donation Management
-
-### Donation Process
-1. **Donor Registration**: Users can register as blood donors
-2. **Screening Process**: Health screening questionnaire before donation
-3. **Appointment Scheduling**: Book donation appointments
-4. **Donation Tracking**: Monitor donation status and history
-5. **Cooldown Management**: Track time between donations (minimum 56 days)
-
-### Donation Statuses
-- Pending
-- Approved
-- Completed
-- Rejected
-- Cancelled
-
-### Screening Features
-- Health questionnaire
-- Medical history review
-- Eligibility assessment
-- Risk factor evaluation
-
-## Blood Request Management
-
-### Request Process
-1. **Request Creation**: Users can submit blood requests
-2. **Blood Type Specification**: Specify required blood type and quantity
-3. **Urgency Level**: Set request priority
-4. **Status Tracking**: Monitor request approval and fulfillment
-5. **Inventory Check**: Automatic availability verification
-
-### Request Features
-- Blood type and quantity specification
-- Urgency level setting
-- Hospital/facility information
-- Patient details
-- Request status tracking
-- Cancellation capability
-
-### Request Statuses
-- Pending
-- Approved
-- In Progress
-- Completed
-- Rejected
-- Cancelled
-
-## Appointment Scheduling System
-
-### Appointment Types
-- Blood donation appointments
-- Consultation appointments
-- Follow-up appointments
-
-### Scheduling Features
-- Available time slot selection
-- Calendar view interface
-- Appointment rescheduling
-- Cancellation management
-- Reminder notifications
-
-### Appointment Management
-- Create new appointments
-- Edit existing appointments
-- Cancel appointments
-- Reschedule appointments
-- View appointment history
-
-## Blood Inventory Management
-
-### Inventory Tracking
-- Blood type categorization
-- Quantity monitoring
-- Expiration date tracking
-- Storage location management
-- Stock level alerts
-
-### Inventory Features
-- Real-time stock levels
-- Expiring blood alerts
-- Low stock notifications
-- Blood type distribution
-- Inventory reports
-
-### Inventory Reports
-- Current stock levels
-- Expiring inventory
-- Low stock alerts
-- Blood type distribution
-- Export functionality
-
-## Email Notification System
-
-### Email Types
-- Welcome emails for new users
-- Email verification
-- Appointment confirmations
-- Appointment cancellations
-- Status update notifications
-- Blood request updates
-- Donation status changes
-
-### Email Features
-- Automated notifications
-- Bulk email sending
-- Email templates
-- SMTP configuration
-- Email testing tools
-
-## Admin Dashboard
-
-### Administrative Functions
-- User management and monitoring
-- Blood request approval and management
-- Blood donation processing
-- Appointment oversight
-- Inventory management
-- System statistics and reports
-
-### User Management
-- View all users
-- Edit user information
-- Update user status
-- Delete users
-- Export user data
-- User statistics
-
-### Blood Management
-- Approve/reject blood requests
-- Process blood donations
-- Update donation status
-- Manage inventory
-- Generate reports
-
-### System Monitoring
-- Dashboard statistics
-- Real-time updates
-- Status counts
-- Performance metrics
-- System health monitoring
-
-## User Dashboard
-
-### Personal Dashboard
-- Blood request history
-- Donation history
-- Appointment schedule
-- Profile information
-- Status overview
-
-### User Actions
-- Create blood requests
-- Schedule donations
-- Book appointments
-- Update profile
-- View notifications
-
-## Database Schema
-
-### Core Tables
-- **users**: User accounts and profiles
-- **blood_donations**: Blood donation records
-- **blood_requests**: Blood request records
-- **appointments**: Appointment scheduling
-- **blood_banks**: Blood inventory storage
-- **email_verifications**: Email verification tokens
-
-### Key Relationships
-- Users can donate every 56 days
-- Users can submit multiple requests
-- Users can schedule multiple appointments
-- Blood donations affect inventory levels
-- Appointments are linked to users and donations
-
-## Security Features
-
-### Authentication
-- Laravel Sanctum for API authentication
-- Session-based web authentication
-- Password hashing and validation
-- Remember me functionality
-
-### Authorization
-- Role-based access control
-- Admin middleware protection
-- Route-level security
-- User permission validation
-
-### Data Protection
-- CSRF protection
-- Input validation and sanitization
-- SQL injection prevention
-- XSS protection
-
-## API Endpoints
-
-### Public Routes
-- Home page
-- About page
-- User registration
-- User login
-- Password recovery
-
-### Protected User Routes
-- User dashboard
-- Profile management
-- Blood request creation
-- Blood donation scheduling
-- Appointment management
-
-### Protected Admin Routes
-- Admin dashboard
-- User management
-- Blood request management
-- Blood donation processing
-- Inventory management
-- Email management
-
-## Frontend Features
-
-### User Interface
-- Responsive design
-- Modern UI components
-- Interactive forms
-- Real-time updates
-- Mobile-friendly layout
-
-### Asset Management
-- Vite for fast development
-- CSS and JavaScript compilation
-- Asset optimization
-- Hot module replacement
-
-## Reporting and Analytics
-
-### Dashboard Statistics
-- User counts and trends
-- Blood donation statistics
-- Request fulfillment rates
-- Inventory levels
-- Appointment scheduling data
-
-### Export Functionality
-- User data export
-- Blood request reports
-- Donation records
-- Inventory reports
-- Appointment schedules
-
-## System Requirements
-
-### Server Requirements
-- PHP 8.0.2 or higher
-- MySQL 5.7+ or MariaDB 10.2+
-- Composer for dependency management
-- Node.js and npm for frontend assets
-
-### PHP Extensions
-- BCMath, Ctype, JSON
-- Mbstring, OpenSSL, PDO
-- Tokenizer, XML, cURL
-- GD, MySQL extensions
-
-## Deployment Considerations
-
-### Development Environment
-- Local development server
-- Database seeding
-- Asset compilation
-- Error reporting enabled
-
-### Production Environment
-- Web server configuration
-- Database optimization
-- Asset optimization
-- Security hardening
-- SSL certificate setup
-- Backup procedures
-
-## Maintenance and Updates
-
-### Regular Tasks
-- Database backups
-- Log file rotation
-- Security updates
-- Performance monitoring
-- User data cleanup
-
-### Update Procedures
-- Code deployment
-- Database migrations
-- Asset compilation
-- Cache clearing
-- Testing procedures
-
-## Support and Troubleshooting
-
-### Common Issues
-- Database connection problems
-- Permission errors
-- Asset compilation issues
-- Email configuration
-- Performance optimization
-
-### Debugging Tools
-- Laravel logging
-- Error reporting
-- Database query monitoring
-- Performance profiling
-- User activity tracking
-
-This documentation provides a comprehensive overview of the LifeVault project, covering all major features, system architecture, and operational procedures.
+# BloodVault Project Documentation
+
+## System architecture
+
+### Technology stack
+- **Backend:** Node.js 18+, Express 4, Sequelize ORM
+- **Frontend:** Vanilla JavaScript single-page dashboard served from `node-app/public`
+- **Database:** MySQL or MariaDB (relational data), MongoDB for Agenda job storage (optional)
+- **Authentication:** JSON Web Tokens (JWT) issued by the Express API
+- **Real-time:** Socket.IO broadcasting for live inventory and appointment updates
+- **Email:** Nodemailer with SMTP transport
+- **Background work:** Agenda scheduled jobs for reminders and notifications
+
+### Application layers
+1. **Express API** – exposes REST endpoints for authentication, profile
+   management, requests, donations, appointments and inventory operations.
+2. **Sequelize models** – map the core domain entities and encapsulate
+   relationships, scopes and helper methods.
+3. **Job queue** – Agenda definitions trigger email reminders, availability
+   broadcasts and other asynchronous workflows.
+4. **Browser dashboard** – static assets in `node-app/public` provide the admin
+   and donor experience, consuming the same API as external clients.
+
+## Core features
+
+### User management
+- Registration and login handled by `/auth/register` and `/auth/login`
+- Password hashing with `bcryptjs`
+- JWT based sessions with role-aware authorisation (admin vs donor)
+- Profile endpoint `/users/me` for account details
+
+### Blood request management
+- CRUD endpoints under `/requests`
+- Status tracking (`pending`, `approved`, `in_progress`, `fulfilled`, `rejected`)
+- Allocation fields for issued units and matching inventory entries
+- Email notifications when request state changes
+
+### Donation management
+- Endpoints under `/donations`
+- Screening information, vital statistics and scheduling data captured in the
+  model
+- Status transitions broadcast over Socket.IO and delivered via email
+
+### Appointment scheduling
+- `/appointments` endpoints for booking, updating and cancelling appointments
+- Support for appointment types, locations, notes and status workflow
+- Agenda reminder job notifies donors of upcoming slots
+
+### Inventory management
+- `/inventory` endpoints expose blood bank stock levels
+- Aggregations provide totals by blood type and availability windows
+- Socket.IO channel `blood-bank:availability` keeps dashboards in sync
+
+### Email and notifications
+- `node-app/services/emailService.js` centralises SMTP configuration
+- `node-app/services/notificationService.js` formats transactional emails for
+  requests, donations and appointments
+- Agenda jobs reuse the same services for background delivery
+
+## Data model overview
+
+| Model          | Purpose                                                      |
+|----------------|--------------------------------------------------------------|
+| `User`         | Donors and administrators with profile metadata              |
+| `BloodRequest` | Requests submitted by users with urgency and fulfilment data |
+| `BloodDonation`| Donation appointments and screening outcomes                 |
+| `Appointment`  | General purpose scheduling entity for meetings and follow-up |
+| `BloodBank`    | Inventory ledger tracking available units and expiry dates   |
+
+Associations mirror the original business logic: requests, donations and
+appointments belong to a user, while inventory entries stand alone but influence
+request fulfilment workflows.
+
+## API summary
+
+```
+GET    /health
+POST   /auth/register
+POST   /auth/login
+GET    /users/me
+
+GET    /requests
+POST   /requests
+GET    /requests/:id
+PATCH  /requests/:id
+DELETE /requests/:id
+
+GET    /donations
+POST   /donations
+PATCH  /donations/:id
+DELETE /donations/:id
+
+GET    /appointments
+POST   /appointments
+PATCH  /appointments/:id
+DELETE /appointments/:id
+
+GET    /inventory
+POST   /inventory
+PATCH  /inventory/:id
+DELETE /inventory/:id
+```
+
+All protected routes require a bearer token produced during login. Admin-only
+operations perform additional role checks inside middleware helpers such as
+`isAdminRequest` and `ensureOwnershipOrAdmin`.
+
+## Background jobs
+
+Agenda jobs are registered in `node-app/server.js`:
+- `send-email-verification` – delivers sign-up verification links
+- `broadcast-blood-availability` – pushes live stock counts over Socket.IO
+- `remind-upcoming-appointments` – emails donors about impending appointments
+
+If MongoDB is not configured Agenda runs in memory, which is sufficient for
+local development but not for production persistence.
+
+## Real-time channels
+
+Socket.IO namespaces deliver live updates to the dashboard:
+- `blood-bank:availability` for inventory refresh
+- `request:*` and `appointment:*` events emitted from CRUD handlers
+
+Clients connect automatically via the bundled `app.js` in `node-app/public` and
+update the DOM when messages arrive.
+
+## Security considerations
+
+- Passwords are hashed with `bcryptjs`
+- JWT secrets should be long, random strings stored outside source control
+- CORS restrictions can be configured through the `APP_ORIGIN` environment
+  variable
+- Validation is handled inside the request handlers; extend with additional
+  checks or a schema validator as needed
+
+## Deployment notes
+
+- Use `npm start` with `NODE_ENV=production` for production deployments
+- Configure a process manager (PM2, systemd) to keep the server alive
+- Ensure MySQL, MongoDB and SMTP credentials are provisioned via environment
+  variables
+- Serve the application behind HTTPS when exposed publicly

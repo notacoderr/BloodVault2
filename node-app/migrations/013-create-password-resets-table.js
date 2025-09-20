@@ -1,5 +1,5 @@
 /**
- * Mirrors 2014_10_12_100000_create_password_resets_table.php.
+ * Mirrors 2014_10_12_100000_create_password_resets_table.
  * @param {import('sequelize').QueryInterface} queryInterface
  * @param {typeof import('sequelize').Sequelize} Sequelize
  */

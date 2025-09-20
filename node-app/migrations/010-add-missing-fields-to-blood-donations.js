@@ -1,5 +1,5 @@
 /**
- * Mirrors 2025_08_18_074142_add_missing_fields_to_blood_donations_table.php.
+ * Mirrors 2025_08_18_074142_add_missing_fields_to_blood_donations_table.
  * @param {import('sequelize').QueryInterface} queryInterface
  * @param {typeof import('sequelize').Sequelize} Sequelize
  */
