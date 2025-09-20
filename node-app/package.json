@@ -1,0 +1,26 @@
+{
+  "name": "bloodvault-node",
+  "version": "1.0.0",
+  "description": "Node.js equivalents of the BloodVault Laravel models and database schema.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "lint": "eslint .",
+    "start": "NODE_ENV=production node server.js"
+  },
+  "dependencies": {
+    "agenda": "^5.0.0",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.9.4",
+    "nodemailer": "^6.9.8",
+    "sequelize": "^6.37.1",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0"
+  }
+}
