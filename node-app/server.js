@@ -1,10 +1,13 @@
 import http from 'node:http';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Server as SocketIOServer } from 'socket.io';
 import Agenda from 'agenda';
+import { Op } from 'sequelize';
 
 import sequelize from './config/database.js';
 import { initModels, getModels } from './models/index.js';
@@ -19,6 +22,10 @@ import { sendMail } from './services/emailService.js';
 
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const publicDir = path.join(__dirname, 'public');
+
 const app = express();
 const server = http.createServer(app);
 const io = new SocketIOServer(server, {
@@ -27,7 +34,26 @@ const io = new SocketIOServer(server, {
   }
 });
 
+const allowedOrigins = process.env.APP_ORIGIN
+  ? process.env.APP_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
+  : null;
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (!origin || !allowedOrigins || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    res.status(204).end();
+    return;
+  }
+  next();
+});
+
 app.use(express.json());
+app.use(express.static(publicDir));
 
 const JWT_SECRET = process.env.JWT_SECRET || 'change-me';
 const PORT = Number(process.env.PORT || 4000);
@@ -107,6 +133,21 @@ function authenticate(req, res, next) {
   }
 }
 
+function isAdminRequest(req) {
+  return req.user?.role === 'admin';
+}
+
+function ensureOwnershipOrAdmin(req, ownerId) {
+  return isAdminRequest(req) || req.user?.sub === ownerId;
+}
+
+function scopedFilter(req, filter = {}) {
+  if (isAdminRequest(req)) {
+    return filter;
+  }
+  return { ...filter, userId: req.user?.sub };
+}
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
@@ -148,6 +189,39 @@ app.post('/auth/login', async (req, res) => {
   } catch (error) {
     console.error('Login failed', error);
     res.status(500).json({ message: 'Login failed' });
+  }
+});
+
+app.get('/users/me', authenticate, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.sub);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user.toJSON());
+  } catch (error) {
+    console.error('Failed to fetch current user', error);
+    res.status(500).json({ message: 'Failed to fetch current user' });
+  }
+});
+
+app.get('/users/:id', authenticate, async (req, res) => {
+  try {
+    const targetId = Number(req.params.id);
+    if (!ensureOwnershipOrAdmin(req, targetId)) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    const user = await User.findByPk(targetId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user.toJSON());
+  } catch (error) {
+    console.error('Failed to fetch user', error);
+    res.status(500).json({ message: 'Failed to fetch user' });
   }
 });
 
@@ -207,6 +281,295 @@ app.get('/users/:id/donation-eligibility', authenticate, async (req, res) => {
   } catch (error) {
     console.error('Failed to calculate donation eligibility', error);
     res.status(500).json({ message: 'Failed to calculate donation eligibility' });
+  }
+});
+
+app.get('/blood-requests', authenticate, async (req, res) => {
+  try {
+    const where = scopedFilter(req);
+    if (isAdminRequest(req) && req.query.userId) {
+      const requestedId = Number(req.query.userId);
+      if (!Number.isNaN(requestedId)) {
+        where.userId = requestedId;
+      }
+    }
+    if (req.query.status) {
+      where.status = req.query.status;
+    }
+    if (req.query.urgency) {
+      where.urgency = req.query.urgency;
+    }
+
+    const requests = await BloodRequest.findAll({
+      where,
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'name', 'email', 'bloodtype', 'contact', 'city']
+        }
+      ],
+      order: [['requestDate', 'DESC']]
+    });
+
+    res.json(requests.map((request) => request.toJSON()));
+  } catch (error) {
+    console.error('Failed to fetch blood requests', error);
+    res.status(500).json({ message: 'Failed to fetch blood requests' });
+  }
+});
+
+app.get('/blood-requests/:id', authenticate, async (req, res) => {
+  try {
+    const bloodRequest = await BloodRequest.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'name', 'email', 'bloodtype', 'contact', 'city']
+        }
+      ]
+    });
+
+    if (!bloodRequest) {
+      return res.status(404).json({ message: 'Request not found' });
+    }
+
+    if (!ensureOwnershipOrAdmin(req, bloodRequest.userId)) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    res.json(bloodRequest.toJSON());
+  } catch (error) {
+    console.error('Failed to fetch blood request', error);
+    res.status(500).json({ message: 'Failed to fetch blood request' });
+  }
+});
+
+app.get('/blood-donations', authenticate, async (req, res) => {
+  try {
+    const where = scopedFilter(req);
+    if (req.query.status) {
+      where.status = req.query.status;
+    }
+
+    const donations = await BloodDonation.findAll({
+      where,
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'name', 'email', 'bloodtype']
+        }
+      ],
+      order: [['donationDate', 'DESC']]
+    });
+
+    res.json(donations.map((donation) => donation.toJSON()));
+  } catch (error) {
+    console.error('Failed to fetch blood donations', error);
+    res.status(500).json({ message: 'Failed to fetch blood donations' });
+  }
+});
+
+app.get('/blood-donations/:id', authenticate, async (req, res) => {
+  try {
+    const donation = await BloodDonation.findByPk(req.params.id, {
+      include: [
+        { model: User, as: 'user', attributes: ['id', 'name', 'email', 'bloodtype'] }
+      ]
+    });
+
+    if (!donation) {
+      return res.status(404).json({ message: 'Donation not found' });
+    }
+
+    if (!ensureOwnershipOrAdmin(req, donation.userId)) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    res.json(donation.toJSON());
+  } catch (error) {
+    console.error('Failed to fetch blood donation', error);
+    res.status(500).json({ message: 'Failed to fetch blood donation' });
+  }
+});
+
+app.get('/appointments', authenticate, async (req, res) => {
+  try {
+    const where = scopedFilter(req);
+    if (req.query.status) {
+      where.status = req.query.status;
+    }
+
+    const range = {};
+    if (req.query.from) {
+      const fromDate = new Date(req.query.from);
+      if (!Number.isNaN(fromDate.getTime())) {
+        range[Op.gte] = fromDate;
+      }
+    }
+    if (req.query.to) {
+      const toDate = new Date(req.query.to);
+      if (!Number.isNaN(toDate.getTime())) {
+        range[Op.lte] = toDate;
+      }
+    }
+    if (Object.keys(range).length > 0) {
+      where.appointmentDate = { ...(where.appointmentDate || {}), ...range };
+    }
+
+    const appointments = await Appointment.findAll({
+      where,
+      include: [
+        { model: User, as: 'user', attributes: ['id', 'name', 'email', 'bloodtype'] }
+      ],
+      order: [['appointmentDate', 'DESC']]
+    });
+
+    res.json(appointments.map((appointment) => appointment.toJSON()));
+  } catch (error) {
+    console.error('Failed to fetch appointments', error);
+    res.status(500).json({ message: 'Failed to fetch appointments' });
+  }
+});
+
+app.get('/appointments/:id', authenticate, async (req, res) => {
+  try {
+    const appointment = await Appointment.findByPk(req.params.id, {
+      include: [
+        { model: User, as: 'user', attributes: ['id', 'name', 'email', 'bloodtype'] }
+      ]
+    });
+
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    if (!ensureOwnershipOrAdmin(req, appointment.userId)) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    res.json(appointment.toJSON());
+  } catch (error) {
+    console.error('Failed to fetch appointment', error);
+    res.status(500).json({ message: 'Failed to fetch appointment' });
+  }
+});
+
+app.get('/inventory', authenticate, async (req, res) => {
+  try {
+    let queryBuilder = BloodBank;
+    if (req.query.scope) {
+      const scopes = req.query.scope
+        .split(',')
+        .map((scope) => scope.trim())
+        .filter(Boolean);
+      if (scopes.length > 0) {
+        queryBuilder = BloodBank.scope(scopes);
+      }
+    }
+
+    const where = {};
+    if (!isAdminRequest(req)) {
+      where.status = 1;
+    }
+    if (req.query.bloodType) {
+      where.bloodType = req.query.bloodType;
+    }
+
+    const inventory = await queryBuilder.findAll({
+      where,
+      include: [
+        { model: User, as: 'donor', attributes: ['id', 'name', 'bloodtype'] }
+      ],
+      order: [['expirationDate', 'ASC']]
+    });
+
+    res.json(inventory.map((item) => item.toJSON()));
+  } catch (error) {
+    console.error('Failed to fetch inventory', error);
+    res.status(500).json({ message: 'Failed to fetch inventory' });
+  }
+});
+
+app.get('/dashboard/summary', authenticate, async (req, res) => {
+  try {
+    let userIdFilter;
+    if (isAdminRequest(req) && req.query.userId) {
+      const requestedId = Number(req.query.userId);
+      userIdFilter = !Number.isNaN(requestedId) ? { userId: requestedId } : {};
+    } else {
+      userIdFilter = isAdminRequest(req) ? {} : { userId: req.user.sub };
+    }
+
+    const requestWhere = { ...userIdFilter };
+    const donationWhere = { ...userIdFilter };
+    const appointmentWhere = { ...userIdFilter };
+    const upcomingWhere = {
+      ...appointmentWhere,
+      appointmentDate: { [Op.gt]: new Date() }
+    };
+
+    const [
+      totalRequests,
+      pendingRequests,
+      totalDonations,
+      completedDonations,
+      upcomingAppointmentsCount,
+      availableUnits,
+      recentRequests,
+      recentDonations,
+      upcomingAppointments
+    ] = await Promise.all([
+      BloodRequest.count({ where: requestWhere }),
+      BloodRequest.count({ where: { ...requestWhere, status: 'pending' } }),
+      BloodDonation.count({ where: donationWhere }),
+      BloodDonation.count({ where: { ...donationWhere, status: 'completed' } }),
+      Appointment.count({ where: upcomingWhere }),
+      BloodBank.sum('quantity', { where: { status: 1 } }),
+      BloodRequest.findAll({
+        where: requestWhere,
+        include: [
+          { model: User, as: 'user', attributes: ['id', 'name', 'bloodtype'] }
+        ],
+        order: [['requestDate', 'DESC']],
+        limit: 5
+      }),
+      BloodDonation.findAll({
+        where: donationWhere,
+        include: [
+          { model: User, as: 'user', attributes: ['id', 'name', 'bloodtype'] }
+        ],
+        order: [['donationDate', 'DESC']],
+        limit: 5
+      }),
+      Appointment.findAll({
+        where: upcomingWhere,
+        include: [
+          { model: User, as: 'user', attributes: ['id', 'name', 'bloodtype'] }
+        ],
+        order: [['appointmentDate', 'ASC']],
+        limit: 5
+      })
+    ]);
+
+    res.json({
+      totals: {
+        requests: totalRequests,
+        pendingRequests,
+        donations: totalDonations,
+        completedDonations,
+        upcomingAppointments: upcomingAppointmentsCount,
+        availableUnits: Number(availableUnits ?? 0)
+      },
+      recentRequests: recentRequests.map((request) => request.toJSON()),
+      recentDonations: recentDonations.map((donation) => donation.toJSON()),
+      upcomingAppointments: upcomingAppointments.map((appointment) => appointment.toJSON())
+    });
+  } catch (error) {
+    console.error('Failed to build dashboard summary', error);
+    res.status(500).json({ message: 'Failed to build dashboard summary' });
   }
 });
 
@@ -373,6 +736,28 @@ app.patch('/appointments/:id/status', authenticate, async (req, res) => {
     console.error('Failed to update appointment', error);
     res.status(500).json({ message: 'Failed to update appointment' });
   }
+});
+
+const API_PREFIXES = [
+  '/auth',
+  '/users',
+  '/blood-requests',
+  '/blood-donations',
+  '/appointments',
+  '/inventory',
+  '/dashboard',
+  '/health',
+  '/socket.io'
+];
+
+app.get('*', (req, res, next) => {
+  if (req.method !== 'GET') {
+    return next();
+  }
+  if (API_PREFIXES.some((prefix) => req.path.startsWith(prefix))) {
+    return next();
+  }
+  res.sendFile(path.join(publicDir, 'index.html'));
 });
 
 io.on('connection', (socket) => {
