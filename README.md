@@ -61,5 +61,6 @@ Inside `node-app` the following npm scripts are available:
 
 ## Further reading
 
-Refer to `documentation.md` for a breakdown of the domain features and to
-`setup.md` for a complete environment checklist.
+Refer to `documentation.md` for a breakdown of the domain features, to
+`setup.md` for a complete environment checklist, and to `railway.md` for hosted
+deployment guidance on Railway.
