@@ -97,4 +97,9 @@ export const sequelize = new Sequelize(
   sequelizeOptions
 );
 
+export async function connectDB() {
+  await sequelize.authenticate();
+  return sequelize;
+}
+
 export default sequelize;
