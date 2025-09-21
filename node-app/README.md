@@ -6,8 +6,9 @@ that replace the original Laravel stack.
 
 ## Directory overview
 
-- `server.js` – entry point that boots Express, configures Socket.IO, registers
-  routes and initialises Agenda jobs.
+- `app.js` – lightweight bootstrap that starts the Express/Socket.IO server.
+- `server.js` – configures Express, Socket.IO, registers routes and initialises
+  Agenda jobs.
 - `config/` – database configuration shared by the Sequelize models.
 - `models/` – Sequelize model definitions mirroring the BloodVault domain.
 - `migrations/` – schema migrations that can be executed with `sequelize-cli`.
@@ -57,8 +58,9 @@ integrated into custom deployment tooling.
 npm run dev
 ```
 
-The server listens on `http://localhost:4000` by default, serving both the API
-and the dashboard UI. Use `npm start` to launch in production mode.
+The development script uses `nodemon` for automatic restarts. The server listens
+on `http://localhost:4000` by default, serving both the API and the dashboard
+UI. Use `npm start` to launch in production mode.
 
 ## Linting
 
