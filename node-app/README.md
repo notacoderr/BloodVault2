@@ -6,13 +6,12 @@ that replace the original Laravel stack.
 
 ## Directory overview
 
-- `app.js` – lightweight bootstrap that starts the Express/Socket.IO server.
-- `server.js` – configures Express, Socket.IO, registers routes and initialises
+- `app.js` – configures Express, Socket.IO, registers routes and initialises
   Agenda jobs.
 - `config/` – database configuration shared by the Sequelize models.
 - `models/` – Sequelize model definitions mirroring the BloodVault domain.
 - `migrations/` – schema migrations that can be executed with `sequelize-cli`.
-- `public/` – static dashboard assets served directly by Express.
+- `pages/` – static dashboard assets served directly by Express.
 - `services/` – reusable modules for email delivery and notification logic.
 
 ## Environment variables

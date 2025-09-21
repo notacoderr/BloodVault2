@@ -1,4 +1,4 @@
-import sequelize from '../config/database.js';
+import { sequelize } from '../config/database.js';
 import User from './user.js';
 import BloodRequest from './bloodRequest.js';
 import BloodDonation from './bloodDonation.js';
@@ -34,4 +34,17 @@ export function getModels() {
   return initModels();
 }
 
-export default initModels();
+const db = new Proxy(
+  {},
+  {
+    get(_, property) {
+      if (property === 'sequelize') {
+        return sequelize;
+      }
+      const currentModels = getModels();
+      return currentModels[property];
+    }
+  }
+);
+
+export default db;

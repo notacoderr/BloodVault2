@@ -107,7 +107,7 @@ operations perform additional role checks inside middleware helpers such as
 
 ## Background jobs
 
-Agenda jobs are registered in `node-app/server.js`:
+Agenda jobs are registered in `node-app/app.js`:
 - `send-email-verification` – delivers sign-up verification links
 - `broadcast-blood-availability` – pushes live stock counts over Socket.IO
 - `remind-upcoming-appointments` – emails donors about impending appointments
@@ -121,7 +121,7 @@ Socket.IO namespaces deliver live updates to the dashboard:
 - `blood-bank:availability` for inventory refresh
 - `request:*` and `appointment:*` events emitted from CRUD handlers
 
-Clients connect automatically via the bundled `app.js` in `node-app/public` and
+Clients connect automatically via the bundled `app.js` in `node-app/pages` and
 update the DOM when messages arrive.
 
 ## Security considerations
