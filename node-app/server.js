@@ -2,6 +2,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
+import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -52,7 +53,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json());
+app.use(bodyParser.json({ limit: '1mb' }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(publicDir));
 
 const JWT_SECRET = process.env.JWT_SECRET || 'change-me';
@@ -765,23 +767,31 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => console.log('Socket disconnected', socket.id));
 });
 
-async function bootstrap() {
+export async function bootstrap() {
   try {
     await sequelize.authenticate();
     await agenda.start();
     await agenda.every('1 hour', 'broadcast-blood-availability');
     await agenda.every('1 day', 'remind-upcoming-appointments');
 
-    server.listen(PORT, () => {
-      console.log(`BloodVault Node API listening on port ${PORT}`);
+    await new Promise((resolve) => {
+      server.listen(PORT, () => {
+        console.log(`BloodVault Node API listening on port ${PORT}`);
+        resolve();
+      });
     });
+
+    return server;
   } catch (error) {
     console.error('Failed to start application', error);
-    process.exit(1);
+    try {
+      await agenda.stop();
+    } catch (stopError) {
+      console.error('Failed to stop agenda after bootstrap error', stopError);
+    }
+    throw error;
   }
 }
-
-bootstrap();
 
 process.on('SIGINT', async () => {
   console.log('Shutting down gracefully...');

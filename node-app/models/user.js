@@ -1,4 +1,4 @@
-import crypto from 'node:crypto';
+import { nanoid } from 'nanoid';
 import { Model, DataTypes } from 'sequelize';
 
 /**
@@ -22,7 +22,7 @@ export class User extends Model {
   }
 
   async generateEmailVerificationToken() {
-    const token = crypto.randomBytes(32).toString('hex');
+    const token = nanoid(64);
     this.emailVerificationToken = token;
     await this.save();
     return token;
