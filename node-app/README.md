@@ -26,7 +26,10 @@ Key variables include database credentials (`DB_HOST`, `DB_DATABASE`,
 `DB_USERNAME`, `DB_PASSWORD`), JWT secrets (`JWT_SECRET`), optional Agenda
 backing store (`MONGO_URL`) and SMTP settings (`MAIL_*`). `APP_ORIGIN` may be set
 to a comma-separated list of allowed front-end origins if the dashboard is
-hosted separately.
+hosted separately. Hosted providers such as Railway expose MySQL credentials via
+`MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`, `MYSQLPASSWORD` and `MYSQLDATABASE` or a
+`DATABASE_URL` connection string – the database configuration automatically
+recognises these fallbacks.
 
 ## Installing dependencies
 
@@ -73,3 +76,8 @@ npm run lint
   MongoDB is available.
 - Nodemailer defaults to a stream transport when SMTP credentials are not set,
   making local development frictionless.
+
+## Deploying to Railway
+
+See `../railway.md` for detailed hosting instructions, environment variables and
+migration tips tailored to Railway's managed infrastructure.

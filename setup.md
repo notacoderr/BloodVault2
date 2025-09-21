@@ -63,3 +63,8 @@ same port. Use `npm start` for a production configuration.
   on a different domain.
 - If MongoDB is available the scheduled tasks defined with Agenda will persist
   across restarts.
+
+## Hosted deployment
+
+Deploying to Railway? Follow the step-by-step instructions in `railway.md` for
+service provisioning, environment configuration and migration tips.
