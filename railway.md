@@ -7,13 +7,23 @@ at that subfolder when building the service.
 
 ## 1. Create a Railway project and service
 
-1. Create a new project in the Railway dashboard.
-2. Connect your GitHub repository or use `railway up` from a local clone.
-3. When prompted for the service root directory choose `node-app` (or set the
-   "Root Directory" field to `node-app` in the service settings). Railway's
-   Nixpacks builder will detect the Node application automatically and run
-   `npm install` followed by `npm start`.
-4. Set the service health check path to `/health` so Railway can verify the API
+1. In the Railway dashboard click **New Project → Deploy from GitHub repo** and
+   authorize Railway to read your account if prompted.
+2. Pick the repository that contains BloodVault2 (your fork or the upstream
+   repo). If you already created a generic Node service from the template that
+   points at `alphasec/nodejs`, delete that service or disconnect its source so
+   the new one can attach to the correct repository.
+3. After the repository is selected Railway asks for a root directory. Enter
+   `node-app` so the build runs inside the Express project instead of the
+   repository root. You can change this later under **Service → Settings → Build
+   & Deploy → Root Directory**. If the service still shows `alphasec/nodejs` as
+   the deployment source, open the same settings page, click **Disconnect** next
+   to the GitHub repository, and then **Connect** to your BloodVault2 fork with
+   `node-app` as the root directory.
+4. Railway's Nixpacks builder will detect the Node application automatically and
+   run `npm install` followed by `npm start`. You do not need to override the
+   start command unless you want to enable the development server manually.
+5. Set the service health check path to `/health` so Railway can verify the API
    is running.
 
 ## 2. Provision backing services
