@@ -3,7 +3,7 @@
  * @param {import('sequelize').QueryInterface} queryInterface
  * @param {typeof import('sequelize').Sequelize} Sequelize
  */
-export async function up(queryInterface, Sequelize) {
+async function up(queryInterface, Sequelize) {
   await queryInterface.createTable('blood_banks', {
     STOCK_ID: {
       type: Sequelize.BIGINT.UNSIGNED,
@@ -57,6 +57,8 @@ export async function up(queryInterface, Sequelize) {
   await queryInterface.addIndex('blood_banks', ['blood_type']);
 }
 
-export async function down(queryInterface) {
+async function down(queryInterface) {
   await queryInterface.dropTable('blood_banks');
 }
+
+module.exports = { up, down };

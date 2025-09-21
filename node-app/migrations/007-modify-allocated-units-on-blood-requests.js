@@ -5,7 +5,7 @@
  * @param {import('sequelize').QueryInterface} queryInterface
  * @param {typeof import('sequelize').Sequelize} Sequelize
  */
-export async function up(queryInterface, Sequelize) {
+async function up(queryInterface, Sequelize) {
   await queryInterface.changeColumn('blood_requests', 'allocated_units', {
     type: Sequelize.INTEGER,
     allowNull: true,
@@ -13,10 +13,12 @@ export async function up(queryInterface, Sequelize) {
   });
 }
 
-export async function down(queryInterface, Sequelize) {
+async function down(queryInterface, Sequelize) {
   await queryInterface.changeColumn('blood_requests', 'allocated_units', {
     type: Sequelize.INTEGER,
     allowNull: false,
     defaultValue: 0
   });
 }
+
+module.exports = { up, down };

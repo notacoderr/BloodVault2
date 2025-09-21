@@ -3,7 +3,7 @@
  * @param {import('sequelize').QueryInterface} queryInterface
  * @param {typeof import('sequelize').Sequelize} Sequelize
  */
-export async function up(queryInterface, Sequelize) {
+async function up(queryInterface, Sequelize) {
   await queryInterface.addColumn('blood_donations', 'admin_notes', {
     type: Sequelize.TEXT,
     allowNull: true
@@ -19,8 +19,10 @@ export async function up(queryInterface, Sequelize) {
   });
 }
 
-export async function down(queryInterface) {
+async function down(queryInterface) {
   await queryInterface.removeColumn('blood_donations', 'admin_notes');
   await queryInterface.removeColumn('blood_donations', 'quantity');
   await queryInterface.removeColumn('blood_donations', 'screening_status');
 }
+
+module.exports = { up, down };
