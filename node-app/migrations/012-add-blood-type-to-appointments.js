@@ -3,13 +3,15 @@
  * @param {import('sequelize').QueryInterface} queryInterface
  * @param {typeof import('sequelize').Sequelize} Sequelize
  */
-export async function up(queryInterface, Sequelize) {
+async function up(queryInterface, Sequelize) {
   await queryInterface.addColumn('appointments', 'blood_type', {
     type: Sequelize.STRING(4),
     allowNull: true
   });
 }
 
-export async function down(queryInterface) {
+async function down(queryInterface) {
   await queryInterface.removeColumn('appointments', 'blood_type');
 }
+
+module.exports = { up, down };

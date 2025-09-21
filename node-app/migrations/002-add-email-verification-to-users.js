@@ -4,7 +4,7 @@
  * @param {import('sequelize').QueryInterface} queryInterface
  * @param {typeof import('sequelize').Sequelize} Sequelize
  */
-export async function up(queryInterface, Sequelize) {
+async function up(queryInterface, Sequelize) {
   await queryInterface.addColumn('users', 'email_verified_at', {
     type: Sequelize.DATE,
     allowNull: true
@@ -21,8 +21,10 @@ export async function up(queryInterface, Sequelize) {
   });
 }
 
-export async function down(queryInterface) {
+async function down(queryInterface) {
   await queryInterface.removeColumn('users', 'email_verified_at');
   await queryInterface.removeColumn('users', 'email_verification_token');
   await queryInterface.removeColumn('users', 'is_verified');
 }
+
+module.exports = { up, down };
