@@ -27,6 +27,99 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const publicDir = path.join(__dirname, 'public');
 
+function toBoolean(value) {
+  if (value == null) {
+    return false;
+  }
+  const normalised = value.toString().trim().toLowerCase();
+  return ['1', 'true', 'yes', 'on'].includes(normalised);
+}
+
+function createScheduler({ mongoUrl, processEvery, disabled }) {
+  const jobHandlers = new Map();
+  let agendaInstance = null;
+
+  if (!disabled) {
+    agendaInstance = new Agenda({
+      db: { address: mongoUrl },
+      processEvery
+    });
+  } else {
+    console.warn('Agenda scheduler disabled via configuration. Background jobs will run inline.');
+  }
+
+  async function runInline(name, handler, data) {
+    if (!handler) {
+      console.warn(`Attempted to run unknown job "${name}" inline.`);
+      return;
+    }
+
+    try {
+      await handler({ attrs: { data: data ?? null } });
+    } catch (error) {
+      console.error(`Inline execution of job "${name}" failed`, error);
+    }
+  }
+
+  return {
+    define(name, handler) {
+      jobHandlers.set(name, handler);
+      agendaInstance?.define(name, handler);
+    },
+    async start() {
+      if (!agendaInstance) {
+        if (!disabled) {
+          console.warn('Agenda scheduler unavailable. Background jobs will run inline until MongoDB is configured.');
+        }
+        return false;
+      }
+
+      try {
+        await agendaInstance.start();
+        return true;
+      } catch (error) {
+        console.error('Failed to start agenda scheduler. Falling back to inline execution.', error);
+        agendaInstance = null;
+        return false;
+      }
+    },
+    async stop() {
+      if (!agendaInstance) {
+        return;
+      }
+      try {
+        await agendaInstance.stop();
+      } catch (error) {
+        console.error('Failed to stop agenda scheduler cleanly', error);
+      }
+    },
+    async every(interval, name) {
+      if (!agendaInstance) {
+        console.warn(`Skipping recurring job "${name}" because the scheduler is not running.`);
+        return;
+      }
+      try {
+        await agendaInstance.every(interval, name);
+      } catch (error) {
+        console.error(`Failed to schedule recurring job "${name}"`, error);
+      }
+    },
+    async now(name, data) {
+      const handler = jobHandlers.get(name);
+      if (agendaInstance) {
+        try {
+          await agendaInstance.now(name, data);
+          return;
+        } catch (error) {
+          console.error(`Failed to enqueue job "${name}". Running inline instead.`, error);
+        }
+      }
+
+      await runInline(name, handler, data);
+    }
+  };
+}
+
 const app = express();
 const server = http.createServer(app);
 const io = new SocketIOServer(server, {
@@ -64,9 +157,10 @@ initModels();
 const models = getModels();
 const { User, BloodRequest, BloodDonation, Appointment, BloodBank } = models;
 
-const agenda = new Agenda({
-  db: { address: process.env.MONGO_URL || 'mongodb://127.0.0.1/bloodvault-jobs' },
-  processEvery: process.env.AGENDA_PROCESS_EVERY || '30 seconds'
+const agenda = createScheduler({
+  mongoUrl: process.env.MONGO_URL || 'mongodb://127.0.0.1/bloodvault-jobs',
+  processEvery: process.env.AGENDA_PROCESS_EVERY || '30 seconds',
+  disabled: toBoolean(process.env.AGENDA_DISABLED)
 });
 
 agenda.define('send-email-verification', async (job) => {
@@ -770,9 +864,11 @@ io.on('connection', (socket) => {
 export async function bootstrap() {
   try {
     await sequelize.authenticate();
-    await agenda.start();
-    await agenda.every('1 hour', 'broadcast-blood-availability');
-    await agenda.every('1 day', 'remind-upcoming-appointments');
+    const schedulerStarted = await agenda.start();
+    if (schedulerStarted) {
+      await agenda.every('1 hour', 'broadcast-blood-availability');
+      await agenda.every('1 day', 'remind-upcoming-appointments');
+    }
 
     await new Promise((resolve) => {
       server.listen(PORT, () => {
