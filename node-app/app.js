@@ -66,8 +66,16 @@ app.use(bodyParser.json({ limit: '1mb' }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(pagesDir));
 
+const schedulerMongoUrl =
+  process.env.AGENDA_MONGO_URL ||
+  process.env.MONGO_URL ||
+  process.env.MONGODB_URI ||
+  process.env.MONGODB_URL ||
+  process.env.MONGO_CONNECTION_STRING ||
+  null;
+
 const scheduler = createScheduler({
-  mongoUrl: process.env.MONGO_URL || 'mongodb://127.0.0.1/bloodvault-jobs',
+  mongoUrl: schedulerMongoUrl,
   processEvery: process.env.AGENDA_PROCESS_EVERY || '30 seconds',
   disabled: toBoolean(process.env.AGENDA_DISABLED)
 });

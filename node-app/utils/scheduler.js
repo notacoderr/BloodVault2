@@ -3,14 +3,36 @@ import Agenda from 'agenda';
 export function createScheduler({ mongoUrl, processEvery, disabled }) {
   const jobHandlers = new Map();
   let agendaInstance = null;
+  const trimmedMongoUrl = mongoUrl?.toString().trim();
+  const schedulerDisabled = disabled || !trimmedMongoUrl;
 
-  if (!disabled) {
+  if (schedulerDisabled) {
+    if (disabled) {
+      console.warn('Agenda scheduler disabled via configuration. Background jobs will run inline.');
+    } else {
+      console.warn('Agenda scheduler disabled because no MongoDB connection string was provided. Background jobs will run inline.');
+    }
+  } else {
     agendaInstance = new Agenda({
-      db: { address: mongoUrl },
+      db: { address: trimmedMongoUrl },
       processEvery
     });
-  } else {
-    console.warn('Agenda scheduler disabled via configuration. Background jobs will run inline.');
+
+    agendaInstance.on('error', async (error) => {
+      console.error('Agenda scheduler encountered a connection error. Jobs will run inline until MongoDB is reachable.', error);
+      const currentInstance = agendaInstance;
+      try {
+        if (currentInstance) {
+          await currentInstance.stop();
+        }
+      } catch (stopError) {
+        console.error('Failed to stop agenda after a connection error.', stopError);
+      } finally {
+        if (agendaInstance === currentInstance) {
+          agendaInstance = null;
+        }
+      }
+    });
   }
 
   async function runInline(name, handler, data) {
@@ -33,7 +55,7 @@ export function createScheduler({ mongoUrl, processEvery, disabled }) {
     },
     async start() {
       if (!agendaInstance) {
-        if (!disabled) {
+        if (!schedulerDisabled) {
           console.warn('Agenda scheduler unavailable. Background jobs will run inline until MongoDB is configured.');
         }
         return false;
@@ -60,7 +82,9 @@ export function createScheduler({ mongoUrl, processEvery, disabled }) {
     },
     async every(interval, name) {
       if (!agendaInstance) {
-        console.warn(`Skipping recurring job "${name}" because the scheduler is not running.`);
+        if (!schedulerDisabled) {
+          console.warn(`Skipping recurring job "${name}" because the scheduler is not running.`);
+        }
         return;
       }
       try {
