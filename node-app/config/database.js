@@ -80,9 +80,11 @@ const sequelizeOptions = {
   dialect: connectionConfig.dialect,
   logging: false,
   define: {
-    underscored: false,
+    underscored: true,
     freezeTableName: true,
-    timestamps: true
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   }
 };
 
